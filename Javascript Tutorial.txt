@@ -1,0 +1,123 @@
+1* Configurations:
+    1.- Install node and init it (npm init).
+    2.- Install webpack  (npm install webpack) (globally --globally, for dev only is --save-dev).
+    3.- Install live-server.
+    4.- Configure a webpack.config.js or launch webpack-Create
+        4-1.- Import externals modules: {
+            const HtmlWebpackPlugin = require('html-webpack-plugin');
+            const path = require('path');
+        } 
+        4-2.- The syntax of the config is:
+           module.exports = {
+            entry: ['babel-polyfill','./src/js/index.js'],
+            output: {
+                path: path.resolve(__dirname,'dist'),
+                filename: 'js/bundle.js'
+            },
+            devServer:{
+                contentBase: './dist'
+            },  
+            plugins: [
+                new HtmlWebpackPlugin({
+                    filename:'index.html',
+                    template:'./src/index.html'
+                })
+            ],
+            module: {
+                rules:[
+                    {
+                        test:/\.js$/,
+                        exclude: /node_modules/,
+                        use: {
+                            loader:'babel-loader'
+                        }
+                    }
+                ]
+            }
+        }
+        4-3.- Install webpack-cli
+    5.- Add scripts in the package.json file. 
+          "scripts": {
+            "dev": "webpack --mode development",
+            "build": "webpack --mode production",
+            "start": "webpack-dev-server --mode development --open"
+            },
+    6.- install webpack-dev-server --save-dev
+    7.- npm install babel-core babel-preset-env babel-loader --save-dev
+    8.- npm install babel-polyfill and axios
+    9.- Create a .babelrc file:
+        {
+            "presets":[
+                ["env",{
+                "targets":{
+                    "browsers":[
+                        "las 5 versions",
+                        "ie >= 8"
+                    ]
+                }  
+                }]
+            ]
+        }
+2* Programming:
+    1.- For exporting somenthing you need to add the export word and declare the variable:
+        export const functionOrVariable = (a,b) => {}
+        And For Importing
+        import %name% or {multiple, variables, at, once} or * as allTheThings from './folder/FileWithoutTheDotJs'
+    2.- If using the MVC desging pattern the controller( and the controllers of the models) should be the index.js, but the model and View have methods in them
+    3.- Use cors-anywhere for enabling cors.
+    4.- Asyncronius function for Get Call:
+    import axioos from 'axios' //package import
+
+    async function(query //Parameters){
+        const proxy = 'proxy';// From cors-anywhere
+        const key = 'Apy key';
+        const result = await axios('api url');
+        const resData = result.Data.SomeDataFromApi;
+    }
+    5.- How to class in ES6 and export it:
+    export default class ClassName {
+        constructor(params){
+
+        }
+        
+        methods.
+    }
+    6.- How to Controller in index.js:
+    const controller = () => {
+        // somenthing
+    }
+    7.- Use ´ ´  or  ` ` for html in string.
+    8.- Use localStorage for Data.
+    9.- node src/index.js for executing a js file.
+    10.- So far, you are able to start your application by running the npm start script. 
+    The only remaining concern is that you have to start the script every time you want to try your source code. 
+    You can change this behavior with an always-running node process. 
+    To remedy this, install the commonly used nodemon library on the command line as development dependency to your project.
+    npm install nodemon --save-dev
+    11.- You should be able to develop a Node.js application by now, but there is more to setting up a sophisticated Node.js project that is capable of using recent JavaScript language features (ECMAScript) that are not included in the recent Node.js versions. 
+    That's where Babel becomes useful. You can install it from the command line for your project's development dependencies.
+    npm install @babel/core @babel/node --save-dev
+    npm install @babel/preset-env --save-dev
+    12.- Create an .env file
+    Second, import it into your src/index.js file to initialize it. 
+    The environment variable from your .env file is now accessible in your source code.
+
+        import 'dotenv/config';
+        console.log('Hello Node.js project.');
+        console.log(process.env.MY_SECRET);
+
+    Start the npm script again, and you should see the environmental variable in the command line. 
+    Now you are able to store sensitive data separate from the source code.
+
+    Now, consider the following code for your src/index.js file, where a function is imported from another file from this project.
+
+        import saySomething from './my-other-file.js'
+        import 'dotenv/config';
+        
+    If you use an environment variable in your src/my-other-file.js, it is undefined because the initialization of the dotenv package happens after the import in your src/index.js file. To fix it, put the dotenv initialization before your local file imports:
+
+        import 'dotenv/config';
+        import saySomething from './my-other-file.js'
+    That's a basic understanding of Node.js environment variables. 
+    They should be used to keep sensitive data secure in JavaScript applications, but shouldn't be shared on public GitHub repositories when using git.
+

@@ -1,0 +1,551 @@
+Guide to React.(AGAIN).
+* Backend(Use Axios):
+    1.- Run the command: npx create-react-app yourAppName.
+    2.- Create a folder with the backend of the app //Usually you should separate the react folder with your backend.
+    3.- Inside the backend folder run npm init to create the package.json file.
+    4.- Install express cors mongoose and dotenv and nodemon globally.
+    5.- Create a new file: server.js. In that file put:
+        const express = require('express'); // For the module
+        const cors = require('cors');
+        require('dotenv').config(); //Enviroment variables.
+        const app = express();
+        const port = process.env.PORT || 5000;
+        app.use(cors());
+        app.use(express.json());
+        app.listen(port,() => {
+            console.log('Server is running on port: ${port}');
+        })
+        Next, launch nodemon server.
+    6.- Next config the db, for that import the mongoose module:
+        const mongoose = require('mongoose');
+        and next put the following code:
+        const uri = process.env.ATLAS_URI // or mongodb://localhost:27017/MyDb;
+        mongoose.connect(uri,{useNewUrlParser:true,useCreateIndex:true});
+
+        const connection = mongoose.connection;
+        connection.once('open',() => {
+            console.log("MongoDb Started");
+        })
+    7.- Create a .env variable in the backend folder with vital information:
+        //For the ATLAS_URI constant get the info on the mongoose ATLAS_URI:
+        ATLAS_URI="connection_String"
+    8.- Create a models folder and create an user.model.js with:
+        const mongoose = require('mongoose');
+        const Schema = mongoose.Schema; // the object to create new models
+        const userSchema = new Schema({ // New user database model
+            username: {
+                type: String,
+                required: true,
+                unique: true,
+                minlength: 3
+            },
+        },{
+            timestamps:true,
+        });
+        const User = mongoose.model('User',userSchema); // Create in the db
+        module.exports= User; // Exports the model
+        new exercice model: exercise.model.js:
+        const mongoose = require('mongoose');
+        const Schema = mongoose.Schema; // the object to create new models
+        const exerciseSchema = new Schema({ // New user database model
+            username: { type: String, required: true,},
+            description: { type: String, required: true,},
+            duration: { type: String, required: true,},
+            date: { type: String, required: true,}
+        },{
+            timestamps:true,
+        });
+        const Exercise = mongoose.model('Exercise',exerciseSchema); // Create in the db
+        module.exports= Exercise; // Exports the model
+    9.- Create the routes folder to manage the API routes:
+        create exercices.js and users.js
+    10.- Go to the server.js and create the routes for the app.
+
+        const exerciseRouter = require('./routes/exercices');
+        const exerciseRouter = require('./routes/users');
+        // If the user goes to this directions the app goes to the routes
+        app.use('/exercices',exerciseRouter);
+        app.use('/users',usersRouter);
+
+    11.- users.js example for routes.
+        const router = require('express').Router();
+        let User = require('../models/user.model'); //Mongoose model
+
+        router.route('/').get((req,res) => {
+            User.find() //Mongoose method
+                .then(users => res.json(users))
+                .catch(err => res.status(400).json('Error: ' + err))
+        });
+        router.route('/add').post((req,res) => {
+            const username = req.body.username;
+            const newUser = new User({username});
+
+            newUser.save() //Mongoose method
+                .then(() => res.json('User added'))
+                .catch(err => res.status(400).json('Error: ' + err))
+        });
+        
+        module.exports = router;
+        
+        exercice.js example:
+        const router = require('express').Router();
+        const Exercice = require('../models/exercice.model');
+
+
+        router.route('/').get((req,res) => {
+            Exercice.find() //Mongoose method
+                .then(exercices => res.json(exercices))
+                .catch(err => res.status(400).json('Error: ' + err))
+        });
+        router.route('/add').post((req,res) => {
+            const username = req.body.username;
+            const description = req.body.description;
+            const duration = Number(req.body.duration);
+            const date = Date.parse(req.body.date);
+
+            const newExercice = new Exercice({
+                username,
+                description,
+                duration,
+                date,
+                });
+
+            newExercice.save() //Mongoose method
+                .then(() => res.json('Exercice added'))
+                .catch(err => res.status(400).json('Error: ' + err))
+        });
+
+        router.route('/:id').delete((req,res) => {
+            Exercice.findByIdAndDelete(req.params.id)
+            .then(() => res.json('Execice deleted'))
+            .catch(err => res.status(400).json('Error: ' + err))
+        });
+
+        router.route('/update/:id').post((req,res) => {
+            Exercice.findById(req.params.id)
+            .then(exercice => {
+                exercice.username = req.body.username;
+                exercice.description = req.body.description;
+                exercice.duration = req.body.duration;
+                exercice.date = req.body.date;
+
+                exercice.save()
+                .then(() => res.json('Exercice updated'))
+                .catch(err => res.status(400).json('Error: ' + err))
+
+            })
+            .catch(err => res.status(400).json('Error: ' + err))
+        });
+        module.exports = router;
+** React
+    1.- In the app.js(npm start to deploy)
+        1.- npm install boostrap and import it (import "boostrap/dist/css/boostrap.mi.css")
+        2.- npm install react-router-dom and impor it (import {BrowserRouter as Router, Route} from "react-route-dom")
+        3.- React works with components that are made with jsx. 
+           // You need to create (in /src/components/) and import the components:
+           import Navbar from "./components/navbar.component";
+
+           import ExerciceList from "./components/exercices-list.component";
+           import EditExercice from "./components/edit-exercices.component";
+           import CreateExercice from "./components/create-exercices.component";
+           import CreateUser from "./components/create-user.component";
+
+            function App(){
+                return(
+                    <Router> // For better router syntax
+                        <div className="container">
+                            <Route path="/" exact component={ExerciceList}> // External component, works like an <a> tag
+                            <Navbar /> // components
+                            <br/>
+                            <Route path="/" exact component={ExerciceList}> // External component, works like an <a> tag
+                            <Route path="/edit/:id" exact component={EditExercice}> // External component, works like an <a> tag
+                            <Route path="/create" exact component={CreateExercice}> // External component, works like an <a> tag
+                            <Route path="/user" exact component={CreateUser}> // External component, works like an <a> tag
+                        </div>
+                    </Router>
+                );
+            }
+    2.- So, this is an example of a navbar component:
+        import React, {Component} from 'react';
+        import {Link} from 'react-router-dom';
+
+        export default class Navbar extends Component {
+            render() {
+                return(
+                    //Here goes de jsx code
+                    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+                        <Link to="/" className="navbar-brand">ExerTracker</Link> //Goes to that directory
+                        <div className="collapse navbar-collapse">
+                            <ul className ="navbar-nav mr-auto">
+                                <li className = "navbar-item">
+                                <Link to="/" className="nav-link">Exercices</Link>
+                                </li>
+                                <li className = "navbar-item">
+                                <Link to="/create" className="nav-link">Create Exercice log</Link>
+                                </li>
+                                <li className = "navbar-item">
+                                <Link to="/user" className="nav-link">Create User</Link>
+                                </li>
+                            </ul>
+                        <div>
+                    </nav>
+                );
+            }
+        }
+    3.- CreateExercice component (npm install reack-datepicker):
+        import React, {Component} from 'react';
+        import DatePicker from 'react-datepicker';
+        import "react-datepicker/dist/react-datepicker.css"
+        export default class CreateExercice extends Component{
+                constructor(props){
+                    super(props) // always in react components
+
+                    this.onSubmit = this.onSubmit.bind(this);
+                    this.onChangeUsername = this.onChangeUsername.bind(this); // This is needed because the methods need the 'this' variable.'This' will be state
+                    this.onChangeDescription = this.onChangeDescription.bind(this); // This is needed because the methods need the 'this' variable.'This' will be state
+                    this.onChangeDuration = this.onChangeDuration.bind(this); // This is needed because the methods need the 'this' variable.'This' will be state
+                    this.onChangeDate = this.onChangeDate.bind(this); // This is needed because the methods need the 'this' variable.'This' will be state
+
+                    this.state ={ // Variables
+                        username: '', 
+                        description: '',
+                        duration: 0,
+                        date: new Date(),
+                        users:[] 
+                    }
+                }
+        }    
+
+            ComponentDidMount(){ //This is a react lifecycle method, before anything loads this method execute.
+                this.setState({
+                    users: [],
+                    username: ''
+                });
+            }
+
+            onChangeUsername(e){ // Method
+                this.setState({ // To changue values of the state
+                    username: e.target.value
+                })
+            }
+            onChangeDescription(e){ // Method
+                this.setState({ // To changue values of the state
+                    description: e.target.value
+                })
+            }
+            onChangeDuration(e){ // Method
+                this.setState({ // To changue values of the state
+                    duration: e.target.value
+                })
+            }
+            onChangeDate(date){ // Method
+                this.setState({ // To changue values of the state
+                    date: date
+                })
+            }
+
+            onSubmit(e){
+                e.preventDefault():// prevents the default behavior of the onSubmit
+                cons exercice = {
+                    username: this.state.username,
+                    description: this.state.description,
+                    duration: this.state.duration,
+                    date: this.state.date,
+
+                };
+
+                windows.location = '/'; // Goes to a route
+            }
+
+            render (){
+                return(
+                    <div>
+                        <h3>Create new Exercise log</h3>
+                        <form onSubmit={this.onSubmit}>
+                            <div className="form-group">
+                                <label>Username: </label>
+                                <select ref="userInput" required
+                                className="form-control"
+                                value={this.state.username}
+                                onChange={this.onChangeUsername}>
+                                {
+                                    this.state.users.map( (user) =>{
+                                        return <option> 
+                                        key={user}
+                                        value={user}>
+                                        (user)
+                                        </option>;
+                                    })
+                                }
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Description: </label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="form-control"
+                                    value={this.state.description}
+                                    onChange={this.onChangeDescription}   
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Duration (in minutes): </label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="form-control"
+                                    value={this.state.duration}
+                                    onChange={this.onChangeDuration}   
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Date: </label>
+                                <div>
+                                <DatePicker select={this.state.date} onChange={this.onChangeDate} />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <input
+                                        type="submit"
+                                        required
+                                        className="btn btn-primary"
+                                        value="Create Exercise Log"
+                                        onClick={this.onSubmit}   
+                                    />
+                            </div>
+                        </form>
+                    </div>
+                )
+            }
+        }
+    4.- create-user.component.js:
+        1.- import React, {Component} from 'react';
+        export default class CreateUsers extends Component{
+            constructor(props){
+                super(props)
+                    this.onChangeUsername = this.onChangeUsername.bind(this); // This is needed because the methods need the 'this' variable.'This' will be state
+                    this.onSubmit = this.onSubmit.bind(this);
+                this.state={
+                    username: ''
+                }
+            }
+        }
+
+        onChangeUsername(e){ // Method
+            this.setState({ // To changue values of the state
+                username: e.target.value
+            })
+        }
+
+        onSubmit(e){
+            e.preventDefault():// prevents the default behavior of the onSubmit
+            cons user = {
+                username: this.state.username
+            };
+
+            this.state{(
+                username: ''
+            )}
+        }
+         render (){
+                return(
+                    <div>
+                        <h3>Create new user</h3>
+                        <form onSubmit={this.onSubmit}>
+                            <div className="form-group">
+                                <label>Username: </label>
+                                 <input
+                                    type="text"
+                                    required
+                                    className="form-control"
+                                    value={this.state.username}
+                                    onChange={this.onChangeUsername}   
+                                />
+                            </div>
+                            <div className="form-group">
+                                <input
+                                        type="submit"
+                                        required
+                                        className="btn btn-primary"
+                                        value="Create user"
+                                        onClick={this.onSubmit}   
+                                    />
+                            </div>
+                        </form>
+                    </div>
+                )
+            }
+        }
+                            
+*** Connect the front to the back
+    1.- npm install axios.
+    2.- import axios from 'axios' in the user component
+    3.- On the submit method:
+    onSubmit(e){
+            e.preventDefault():// prevents the default behavior of the onSubmit
+            cons user = {
+                username: this.state.username
+            };
+            //Axios Post Request
+            axios.post('url',user) // Uri and model
+            .then(res => console.log(res.data))
+            .catch(err => console.log('Err: '+ err))
+
+            this.setState{(
+                username: ''
+            )}
+    }
+    4.- On ComponentDidMount:
+    ComponentDidMount(){
+        axios.get()
+        .then(res =>{
+            if(res.data.length > 0){
+                this.setState({
+                    users: response.data.map(user => user.username),
+                    username: response.data[0].username
+                })
+            }
+        })
+    }
+    5.- Deleting an element in the db and dinamicly:
+        deleteExercise(id){
+            axios.delete('url')
+            .then(res => console.log(res.data));
+
+            this.setState({
+                exercices: this.state.exercises.filter(el => el.id !== id)
+            })
+        }
+
+
+
+*** Utils:
+    1.- To run the client and the server you can install concurrently and
+    use the script: "concurrently\"npm run server\" \"npm run client\"".
+    2.- Updating the UI like a clock:
+        function tick() {
+        const element = (
+            <div>
+            <h1>Hello, world!</h1>
+            <h2>It is {new Date().toLocaleTimeString()}.</h2>
+            </div>
+        );
+        ReactDOM.render(element, document.getElementById('root'));
+        }
+
+        setInterval(tick, 1000);
+    3.- Props are Read-Only: Example:
+    
+        const element = <Welcome name="Sara" />;
+        When React sees an element representing a user-defined component, it passes JSX attributes to this component as a single object. We call this object “props”.
+
+        For example, this code renders “Hello, Sara” on the page:
+
+        function Welcome(props) {
+        return <h1>Hello, {props.name}</h1>;
+        }
+
+        const element = <Welcome name="Sara" />;
+        ReactDOM.render(
+        element,
+        document.getElementById('root')
+        );
+    4.- Button example:
+        function ActionLink() {
+        function handleClick(e) {
+            e.preventDefault();
+            console.log('The link was clicked.');
+        }
+
+        return (
+            <a href="#" onClick={handleClick}>
+            Click me
+            </a>
+        );
+        }
+
+        class Toggle extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = {isToggleOn: true};
+
+                // This binding is necessary to make `this` work in the callback
+                this.handleClick = this.handleClick.bind(this);
+            }
+
+            handleClick() {
+                this.setState(state => ({
+                isToggleOn: !state.isToggleOn
+                }));
+            }
+
+            render() {
+                return (
+                <button onClick={this.handleClick}>
+                    {this.state.isToggleOn ? 'ON' : 'OFF'}
+                </button>
+                );
+            }
+            }
+
+            ReactDOM.render(
+            <Toggle />,
+            document.getElementById('root')
+            );
+        }
+
+    5.- Passing Arguments to Event Handlers:
+        Inside a loop it is common to want to pass an extra parameter to an event handler.
+         For example, if id is the row ID, either of the following would work:
+
+        <button onClick={(e) => this.deleteRow(id, e)}>Delete Row</button>
+        <button onClick={this.deleteRow.bind(this, id)}>Delete Row</button>
+
+        The above two lines are equivalent, and use arrow functions and Function.prototype.bind respectively.
+
+        In both cases, the e argument representing the React event will be passed as a second argument after the ID. 
+        With an arrow function, we have to pass it explicitly, but with bind any further arguments are automatically forwarded.
+    6.- Conditional Rendering:
+        class LoginControl extends React.Component {
+            constructor(props) {
+                super(props);
+                this.handleLoginClick = this.handleLoginClick.bind(this);
+                this.handleLogoutClick = this.handleLogoutClick.bind(this);
+                this.state = {isLoggedIn: false};
+            }
+
+            handleLoginClick() {
+                this.setState({isLoggedIn: true});
+            }
+
+            handleLogoutClick() {
+                this.setState({isLoggedIn: false});
+            }
+
+            render() {
+                const isLoggedIn = this.state.isLoggedIn;
+                let button;
+
+                if (isLoggedIn) {
+                button = <LogoutButton onClick={this.handleLogoutClick} />;
+                } else {
+                button = <LoginButton onClick={this.handleLoginClick} />;
+                }
+
+                return (
+                <div>
+                    <Greeting isLoggedIn={isLoggedIn} />
+                    {button}
+                </div>
+                );
+            }
+            }
+
+            ReactDOM.render(
+            <LoginControl />,
+            document.getElementById('root')
+            );
+        }
+    7.- How to install and set up MongoDb: https://stackoverflow.com/questions/20796714/how-do-i-start-mongo-db-from-windows
